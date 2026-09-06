@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>런칭 후 작업 분류</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F7F7F5; --surface: #FFFFFF; --border: #E5E4DF;
+    --text: #1A1A18; --muted: #8A8A84; --faint: #C5C5BF;
+    --c1: #1A56DB; --c1-bg: #EEF4FF; --c1-border: #C7D7F8;
+    --c2: #057A55; --c2-bg: #ECFDF3; --c2-border: #A7F3D0;
+    --c3: #6C2BD9; --c3-bg: #F5F3FF; --c3-border: #DDD6FE;
+    --c4: #B45309; --c4-bg: #FFFBEB; --c4-border: #FDE68A;
+    --c5: #0E7490; --c5-bg: #ECFEFF; --c5-border: #A5F3FC;
+    --cross: #BE123C; --cross-bg: #FFF1F2; --cross-border: #FECDD3;
+    --manual: #92400E; --manual-bg: #FFFBEB; --manual-border: #FCD34D;
+    --ta: #6D28D9; --ta-bg: #F5F3FF; --ta-border: #C4B5FD;
+    --tb: #0369A1; --tb-bg: #F0F9FF; --tb-border: #BAE6FD;
+    --tc: #15803D; --tc-bg: #F0FDF4; --tc-border: #BBF7D0;
+    --tna: #64748B; --tna-bg: #F8FAFC; --tna-border: #CBD5E1;
+    --done: #059669; --done-bg: #ECFDF5; --done-border: #6EE7B7;
+  }
+  body { font-family: 'Pretendard','Apple SD Gothic Neo',sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; padding: 32px 20px 60px; }
+  .page { max-width: 900px; margin: 0 auto; }
+
+  header { margin-bottom: 24px; display: flex; align-items: flex-end; justify-content: space-between; }
+  h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: var(--muted); }
+  .date-badge { font-size: 11px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; }
+
+  /* ── 프레임워크 ── */
+  .framework { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px 16px; margin-bottom: 24px; }
+  .framework-title { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 12px; }
+  .fw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .fw-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
+  .fw-num { font-size: 16px; font-weight: 600; line-height: 1; color: var(--faint); flex-shrink: 0; width: 22px; }
+  .fw-q { font-size: 12.5px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 2px; }
+  .fw-hint { font-size: 11px; color: var(--muted); line-height: 1.45; }
+  .fw-item.hl { border-color: var(--c1-border); background: var(--c1-bg); }
+  .fw-item.hl .fw-num { color: var(--c1); }
+  .fw-item.hl .fw-q { color: var(--c1); }
+
+  /* ── 탭 ── */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
+  .tab { flex: 1; text-align: center; padding: 8px 4px; font-size: 13px; font-weight: 500; color: var(--muted); border-radius: 7px; cursor: pointer; transition: all 0.15s; user-select: none; }
+  .tab:hover { color: var(--text); background: var(--bg); }
+  .tab.active { background: var(--text); color: #fff; }
+
+  /* ── 요약 카드 ── */
+  .summary-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin-bottom: 16px; }
+  .summary-card { border-radius: 10px; padding: 10px 12px; border: 1px solid; }
+  .sc-label { font-size: 10px; font-weight: 500; margin-bottom: 3px; }
+  .sc-num { font-size: 22px; font-weight: 600; line-height: 1; letter-spacing: -1px; }
+  .sc1{background:var(--c1-bg);border-color:var(--c1-border)}.sc1 .sc-label,.sc1 .sc-num{color:var(--c1)}
+  .sc2{background:var(--c2-bg);border-color:var(--c2-border)}.sc2 .sc-label,.sc2 .sc-num{color:var(--c2)}
+  .sc3{background:var(--c3-bg);border-color:var(--c3-border)}.sc3 .sc-label,.sc3 .sc-num{color:var(--c3)}
+  .sc4{background:var(--c4-bg);border-color:var(--c4-border)}.sc4 .sc-label,.sc4 .sc-num{color:var(--c4)}
+  .sc5{background:var(--c5-bg);border-color:var(--c5-border)}.sc5 .sc-label,.sc5 .sc-num{color:var(--c5)}
+
+  /* ── 범례 ── */
+  .legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .leg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 3px 9px; }
+  .leg-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .leg-sq  { width: 7px; height: 7px; border-radius: 1.5px; flex-shrink: 0; }
+
+  /* ── 섹션 ── */
+  .sections { display: grid; gap: 12px; }
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; }
+  .section-header:hover { background: #FAFAF8; }
+  .section-title { display: flex; align-items: center; gap: 8px; }
+  .section-bar { width: 4px; height: 18px; border-radius: 2px; flex-shrink: 0; }
+  .section-name { font-size: 14.5px; font-weight: 600; }
+  .section-count { font-size: 11px; color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 2px 7px; }
+  .chevron { font-size: 12px; color: var(--faint); transition: transform 0.2s; }
+  .section.open .chevron { transform: rotate(180deg); }
+  .section-body { display: none; }
+  .section.open .section-body { display: block; }
+  .s1 .section-bar{background:var(--c1)}.s1 .section-name{color:var(--c1)}
+  .s2 .section-bar{background:var(--c2)}.s2 .section-name{color:var(--c2)}
+  .s3 .section-bar{background:var(--c3)}.s3 .section-name{color:var(--c3)}
+  .s4 .section-bar{background:var(--c4)}.s4 .section-name{color:var(--c4)}
+  .s5 .section-bar{background:var(--c5)}.s5 .section-name{color:var(--c5)}
+
+  /* ── 아이템 ── */
+  .item { display: flex; align-items: flex-start; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  .item:last-child { border-bottom: none; }
+  .item:hover { background: #FAFAF8; }
+  .item-tier { flex-shrink: 0; margin-top: 1px; }
+  .item-num { font-size: 10px; color: var(--faint); width: 16px; text-align: right; flex-shrink: 0; padding-top: 3px; }
+  .item-content { flex: 1; min-width: 0; }
+  .item-title { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; }
+  .item-desc { font-size: 11.5px; color: var(--muted); margin-top: 2px; line-height: 1.45; }
+  .item-note { font-size: 11px; color: #7E22CE; background: #FDF4FF; border: 1px solid #E9D5FF; border-radius: 5px; padding: 3px 7px; margin-top: 5px; line-height: 1.4; display: inline-block; }
+  .item-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 5px; }
+  .tag { font-size: 10.5px; font-weight: 500; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
+  .tag-cross { background:var(--cross-bg);color:var(--cross);border:1px solid var(--cross-border) }
+  .tag-manual { background:var(--manual-bg);color:var(--manual);border:1px solid var(--manual-border) }
+  .tag-sched  { background:#FFF7ED;color:#9A3412;border:1px solid #FDBA74 }
+  .tag-mno    { background:#FDF4FF;color:#7E22CE;border:1px solid #E9D5FF }
+  .tag-na     { background:var(--tna-bg);color:var(--tna);border:1px solid var(--tna-border) }
+  .tag-done   { background:var(--done-bg);color:var(--done);border:1px solid var(--done-border) }
+
+  /* ── 티어 배지 ── */
+  .tier { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .tier-A { background:var(--ta-bg);color:var(--ta);border:1.5px solid var(--ta-border); }
+  .tier-B { background:var(--tb-bg);color:var(--tb);border:1.5px solid var(--tb-border); }
+  .tier-C { background:var(--tc-bg);color:var(--tc);border:1.5px solid var(--tc-border); }
+  .tier-NA{ background:var(--tna-bg);color:var(--tna);border:1.5px solid var(--tna-border);font-size:8px; }
+  .tier-done{ background:var(--done-bg);color:var(--done);border:1.5px solid var(--done-border);font-size:8px; }
+
+  /* ── 티어뷰 ── */
+  .tier-view { display: none; }
+  .tier-section { margin-bottom: 22px; }
+  .tier-header { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; border-bottom: 2px solid var(--border); margin-bottom: 12px; }
+  .tier-badge { font-size: 13px; font-weight: 700; padding: 5px 16px; border-radius: 7px; }
+  .tb-A { background:var(--ta-bg);color:var(--ta);border:1.5px solid var(--ta-border); }
+  .tb-B { background:var(--tb-bg);color:var(--tb);border:1.5px solid var(--tb-border); }
+  .tb-C { background:var(--tc-bg);color:var(--tc);border:1.5px solid var(--tc-border); }
+  .tb-NA{ background:var(--tna-bg);color:var(--tna);border:1.5px solid var(--tna-border); }
+  .tb-done{ background:var(--done-bg);color:var(--done);border:1.5px solid var(--done-border); }
+  .tier-sub { font-size: 12px; color: var(--muted); }
+  .tier-items { display: grid; gap: 7px; }
+  .tier-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; display: flex; align-items: flex-start; gap: 10px; }
+  .tier-item-body { flex: 1; }
+  .ti-top { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; flex-wrap: wrap; }
+  .ti-title { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; }
+  .ti-desc { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+  .ti-note { font-size: 11px; color: #7E22CE; background: #FDF4FF; border: 1px solid #E9D5FF; border-radius: 5px; padding: 3px 7px; margin-top: 5px; line-height: 1.4; display: inline-block; }
+  .ti-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 5px; }
+  .cat-pill { font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 20px; }
+  .cat-s1{background:var(--c1-bg);color:var(--c1);border:1px solid var(--c1-border)}
+  .cat-s2{background:var(--c2-bg);color:var(--c2);border:1px solid var(--c2-border)}
+  .cat-s3{background:var(--c3-bg);color:var(--c3);border:1px solid var(--c3-border)}
+  .cat-s4{background:var(--c4-bg);color:var(--c4);border:1px solid var(--c4-border)}
+  .cat-s5{background:var(--c5-bg);color:var(--c5);border:1px solid var(--c5-border)}
+
+  @media(max-width:620px){
+    .summary-grid{grid-template-columns:repeat(3,1fr)}
+    .fw-grid{grid-template-columns:1fr}
+    h1{font-size:18px}
+    .tab{font-size:11px;padding:7px 2px}
+    header{flex-direction:column;align-items:flex-start;gap:8px}
+  }
+  @media(max-width:400px){.summary-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div>
+      <h1>런칭 후 작업 분류</h1>
+      <p class="subtitle">고도화 · 신규기능 · 신사업 · 모두의성지</p>
+    </div>
+    <div class="date-badge">1차 논의 기준 · 2026.09.06</div>
+  </header>
+
+  <!-- 프레임워크 -->
+  <div class="framework">
+    <div class="framework-title">우선순위 결정 전 반드시 고려할 것</div>
+    <div class="fw-grid">
+      <div class="fw-item hl"><div class="fw-num">1</div><div><div class="fw-q">서비스 퀄리티 / 목표달성에 얼마나 영향을 주는가</div><div class="fw-hint">이 기능이 없으면 서비스 신뢰, 전환율, 재방문에 실제로 얼마나 구멍이 생기는가</div></div></div>
+      <div class="fw-item"><div class="fw-num">2</div><div><div class="fw-q">운영/사람으로 대안이나 대체재가 존재하는가</div><div class="fw-hint">개발 없이 임시 대응 가능하다면 → 개발 우선순위를 낮추고 운영으로 먼저 돌릴 수 있다</div></div></div>
+      <div class="fw-item"><div class="fw-num">3</div><div><div class="fw-q">스펙을 줄여서 빠르게 출시할 수 있는가 (속도 + 공수)</div><div class="fw-hint">MVP 수준으로 먼저 내고 이후 고도화하는 구조가 가능한지. 완벽한 버전만 기다리는 비용은 얼마인가</div></div></div>
+      <div class="fw-item hl"><div class="fw-num">4</div><div><div class="fw-q">다른 기능의 선행 조건인가 (의존성 블로커)</div><div class="fw-hint">이게 안 되면 다른 기능 개발이 막히는 경우 → 임팩트와 별개로 순서가 강제된다</div></div></div>
+      <div class="fw-item"><div class="fw-num">5</div><div><div class="fw-q">타이밍이 비즈니스 효과에 영향을 주는가 (time-sensitive)</div><div class="fw-hint">외부 일정이 있거나, 지금 시작해야 나중에 데이터/효과를 쓸 수 있는 항목은 늦을수록 기회비용 누적</div></div></div>
+      <div class="fw-item"><div class="fw-num">6</div><div><div class="fw-q">실패하거나 늦었을 때 리스크가 얼마나 큰가</div><div class="fw-hint">결제·위약금·페널티 등 잘못 만들면 되돌리기 어렵거나 법적·신뢰 이슈로 이어지는 항목은 속도보다 정확성이 우선</div></div></div>
+    </div>
+  </div>
+
+  <!-- 탭 -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('tier',this)">티어별</div>
+    <div class="tab" onclick="switchTab('category',this)">카테고리별</div>
+  </div>
+
+  <!-- ════ 티어 뷰 ════ -->
+  <div id="tier-view" class="tier-view" style="display:block">
+
+    <!-- TIER A -->
+    <div class="tier-section">
+      <div class="tier-header">
+        <span class="tier-badge tb-A">TIER A</span>
+        <span class="tier-sub">지금 당장 — 없으면 서비스 완결이 안 되거나 매출이 막히는 것</span>
+      </div>
+      <div class="tier-items">
+
+        <div class="tier-item">
+          <div class="tier tier-A">A</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">로그 / 스테이지 서버 구축</div><span class="cat-pill cat-s1">고도화</span><span class="tag tag-cross">🔗 전 영역 영향</span></div>
+            <div class="ti-desc">안정적인 테스트/QA 및 운영환경 서버 구축 — 개발 only</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-A">A</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">구매 후기 기능</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">매장별로 작성인, 시간, 내용, 이미지 1장 등으로 제공 — 재방문 유도 핵심</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-A">A</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">정산 및 결제 기능</div><span class="cat-pill cat-s1">고도화</span><span class="tag tag-cross">🔗 전 영역 영향</span></div>
+            <div class="ti-desc">과금방식과 주체(업체/유저)별로 관련된 금액을 정산하고 안내 및 관리하는 기능</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-A">A</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">공구 상품 매력도 증대</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">공구 상품이 매력적으로 보일 수 있는 기능 추가 및 통신사 단 진입 scene UX 개선</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-A">A</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">제휴 배너 링크</div><span class="cat-pill cat-s2">신규기능</span></div>
+            <div class="ti-desc">제휴업체 시세표를 기반으로 링크별로 해당 제휴업체만 보일 수 있는 제휴 구조 설계/배포</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TIER B -->
+    <div class="tier-section">
+      <div class="tier-header">
+        <span class="tier-badge tb-B">TIER B</span>
+        <span class="tier-sub">단기 — 서비스 완성도와 유저 경험에 직접 영향</span>
+      </div>
+      <div class="tier-items">
+
+        <div class="tier-item">
+          <div class="tier tier-B">B</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">주의시세 / 업체 대시보드</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">특정 지점의 등록 가격 대비 N만원 이상 저렴할 경우 별도 리스트로 보여주는 관리담당자 확인용 기능</div>
+            <div class="ti-note">모성에도 동시 적용</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-B">B</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">채팅방 평균 응대시간 태그 표기</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">업체 비교 카드에서 평균 응대시간 표기 (파편화 관점)</div>
+            <div class="ti-note">파편화/태깅/필터 전체 고도화 고민할 때 합쳐서 반영</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-B">B</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">필수 유지기간 및 위약금 안내</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">고객에게 요금제/부가서비스의 필수 유지기간과 위약금을 안내하는 기능</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-B">B</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">기타 런칭 제외 부가기능</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">개통일 기준 해지일 표기, 쿠팡가격 연동, 부가서비스 미가입 추가금 안내 등</div>
+            <div class="ti-note">Sprint 내 잘라서 분할 배분</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-B">B</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">파티 기능 (동반구매)</div><span class="cat-pill cat-s2">신규기능</span></div>
+            <div class="ti-desc">역경매에서 동반할인을 받을 수 있게 만들어주고, 공구를 고객이 제안할 수 있게 P2P로 여는 기능</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-B">B</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">공동구매 이벤트 기능</div><span class="cat-pill cat-s2">신규기능</span></div>
+            <div class="ti-desc">공구 내 이벤트명, 내용, 이미지 등을 통해 제공하는 기능</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-B">B</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">중고폰</div><span class="cat-pill cat-s3">신사업</span></div>
+            <div class="ti-desc">중고폰 판매 (기존에 쓰던 폰 판매)</div>
+            <div class="ti-note">10월 TIER A로 상승 (10월 말 오픈 타겟)</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-B">B</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">자체 보험 상품</div><span class="cat-pill cat-s3">신사업</span></div>
+            <div class="ti-desc">자체 휴대폰 파손보험 상품 판매</div>
+            <div class="ti-note">11월 TIER A로 상승 (11월 말 오픈 타겟)</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-B">B</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">유선 상품</div><span class="cat-pill cat-s3">신사업</span></div>
+            <div class="ti-desc">TV and/or 인터넷 상품 비교/판매</div>
+            <div class="ti-note">12월 TIER A로 상승 (12월 말 오픈 타겟)</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-B">B</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">업체 시세표 초기화</div><span class="cat-pill cat-s4">모두의성지</span></div>
+            <div class="ti-desc">당일 제출된 시세표를 blank로 만드는 기능</div>
+            <div class="ti-note">Sprint 내 잘라서 분할 배분</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-B">B</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">업체 비활성화(정지) 기능</div><span class="cat-pill cat-s4">모두의성지</span></div>
+            <div class="ti-desc">특정 업체의 시세를 등록하지 못하도록 n일(정지일 포함) 비활성화하는 기능</div>
+            <div class="ti-note">Sprint 내 잘라서 분할 배분</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-B">B</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">업체 태그 고도화</div><span class="cat-pill cat-s4">모두의성지</span></div>
+            <div class="ti-desc">업체들 파편화 관점에서 태깅 고도화</div>
+            <div class="ti-note">Sprint 내 분할 배분 (뭉칩 역경매와 함께 고민)</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-B">B</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">온라인 워딩 문구 변경</div><span class="cat-pill cat-s4">모두의성지</span></div>
+            <div class="ti-desc">온라인으로 편하게 신청 후, 택배수령 등으로 명확한 워딩으로 변경</div>
+            <div class="ti-note">Sprint 내 잘라서 분할 배분</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TIER C -->
+    <div class="tier-section">
+      <div class="tier-header">
+        <span class="tier-badge tb-C">TIER C</span>
+        <span class="tier-sub">중장기 — 운영 대안이 있거나, 데이터/여건이 갖춰진 후 의미 있는 것</span>
+      </div>
+      <div class="tier-items">
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">관리자 슬랙 알림</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">어드민 관리자가 공구 등록 등 알림을 슬랙으로 받을 수 있는 기능</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">구매완료 처리 및 판매 데이터 제공</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">판매자의 구매완료 데이터 및 판매일보 등 (대시보드, 통계) 제공</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">유저 페널티 관련 기능</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">공구/역경매 어뷰징 방지 기능 (특히 역경매 쪽 — 정산에 영향)</div>
+            <div class="ti-note">유료화 시점에 TIER A로 상승</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">공시지원금 자동화 (크롤링)</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">자동으로 통신사별 기종별 공시지원금 반영 (KT는 수기 필요)</div>
+            <div class="ti-note">당장은 업체관리 책임자가 수동 수행</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">보험 고도화 (분리관리 및 기종매칭)</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">기종별 보험을 추가하면 자동으로 가격 등이 매핑될 수 있도록 관리 기능 추가</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">시세표 음영 처리</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">이전 제출값 대비 변경된 시세 칸은 음영표시 → 제출 후 음영 해제</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">채팅방 내 타 기종 선택/제시</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">고객이 채팅방에서 타 기종을 선택하고 자동으로 제시할 수 있는 기능</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">요금제별 부가서비스 조합 관리</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">요금제별로 부가서비스를 추가/삭제하고 별도로 관리하는 기능</div>
+            <div class="ti-note">한 업장에서 여러 요금제 기반 상품을 만들 수 있으나 상품이 너무 많아질 수 있음</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">구매 신청 직접 생성</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">어드민 내 구매 신청 건을 직접적으로 생성하는 기능</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">뭉칩 시세표 이미지 추출</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">뭉칩 시세표를 이미지로 추출하여 다른 곳에 활용할 수 있게 해주는 기능</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">업체 앱 홈 데이터 표기</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">업체 앱 홈에 대시보드처럼 주요 지표나 숫자 등을 안내하는 기능</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">AI 기능 (유저단)</div><span class="cat-pill cat-s2">신규기능</span><span class="tag tag-cross">🔗 전 영역 영향</span></div>
+            <div class="ti-desc">복잡한 조건 없이 바로 구매에 도움이 될 수 있는 AI 챗봇 (기종/요금제 추천 등)</div>
+            <div class="ti-note">기 제안된 5가지 AI 기능은 보여주기 식으로라도 마킹 필요 (특허/지원사업)</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">AI 기능 (판매자단)</div><span class="cat-pill cat-s2">신규기능</span><span class="tag tag-cross">🔗 전 영역 영향</span></div>
+            <div class="ti-desc">업무/응대 시간이 아니더라도 AI 챗봇을 통해 고객을 잡아둘 수 있는 상담 챗봇 (유료 운영)</div>
+            <div class="ti-note">기 제안된 5가지 AI 기능은 보여주기 식으로라도 마킹 필요 (특허/지원사업)</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">DP폰</div><span class="cat-pill cat-s2">신규기능</span></div>
+            <div class="ti-desc">DP폰 판매를 위한 기능 구축 (역경매/공구 둘 다)</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-C">C</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">알뜰폰</div><span class="cat-pill cat-s3">신사업</span></div>
+            <div class="ti-desc">모요와 같이 알뜰폰 비교 서비스 제공</div>
+            <div class="ti-note">알뜰요금제는 중고폰 자체를 유저에게 판매 가능할 때 고려</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 미적용 -->
+    <div class="tier-section">
+      <div class="tier-header">
+        <span class="tier-badge tb-NA">미적용</span>
+        <span class="tier-sub">현시점 적용 보류 — 운영으로 대체하거나 방향 미확정</span>
+      </div>
+      <div class="tier-items">
+
+        <div class="tier-item">
+          <div class="tier tier-NA" style="font-size:8px">N/A</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">공구 배송비 옵션</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">업체에서 배송비 별도 여부를 선택하고 가격에 반영</div>
+            <div class="ti-note">가격에 선반영 + 고객에게 안심보험 혜택처럼 보이게</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-NA" style="font-size:8px">N/A</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">자유 입찰</div><span class="cat-pill cat-s2">신규기능</span></div>
+            <div class="ti-desc">파티 기능을 P2P로 여는 방식을 통해 제안 — 현시점 미진행</div>
+          </div>
+        </div>
+
+        <div class="tier-item">
+          <div class="tier tier-NA" style="font-size:8px">N/A</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">뭉파라치</div><span class="cat-pill cat-s2">신규기능</span></div>
+            <div class="ti-desc">허위시세 운영 업체 적발 시 보상</div>
+            <div class="ti-note">프로덕트와 무관하게 운영단으로 이관</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 개발완료 -->
+    <div class="tier-section">
+      <div class="tier-header">
+        <span class="tier-badge tb-done">개발완료</span>
+        <span class="tier-sub">이미 완료된 항목</span>
+      </div>
+      <div class="tier-items">
+        <div class="tier-item">
+          <div class="tier tier-done" style="font-size:8px">✓</div>
+          <div class="tier-item-body">
+            <div class="ti-top"><div class="ti-title">요금제 통합 (동일 가격 그룹화)</div><span class="cat-pill cat-s1">고도화</span></div>
+            <div class="ti-desc">동일 요금제에 기타 상품이 다르게 붙어있는 경우 통합하는 기능</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- ════ 티어 뷰 끝 ════ -->
+
+  <!-- ════ 카테고리 뷰 ════ -->
+  <div id="category-view" style="display:none">
+
+    <div class="summary-grid">
+      <div class="summary-card sc1"><div class="sc-label">⚙️ 고도화</div><div class="sc-num">20</div></div>
+      <div class="summary-card sc2"><div class="sc-label">✨ 신규기능</div><div class="sc-num">7</div></div>
+      <div class="summary-card sc3"><div class="sc-label">🚀 신사업</div><div class="sc-num">4</div></div>
+      <div class="summary-card sc4"><div class="sc-label">🏪 모두의성지</div><div class="sc-num">4</div></div>
+      <div class="summary-card sc5"><div class="sc-label">✓ 개발완료</div><div class="sc-num">1</div></div>
+    </div>
+
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:var(--ta)"></div>TIER A — 즉시</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--tb)"></div>TIER B — 단기</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--tc)"></div>TIER C — 중장기</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--tna)"></div>미적용</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--done)"></div>개발완료</div>
+      <div class="leg"><div class="leg-sq" style="background:var(--cross)"></div>전 영역 영향</div>
+    </div>
+
+    <div class="sections">
+
+      <!-- 고도화 -->
+      <div class="section s1 open">
+        <div class="section-header" onclick="toggle(this)">
+          <div class="section-title"><div class="section-bar"></div><div class="section-name">⚙️ 고도화</div><div class="section-count">20개</div></div>
+          <div class="chevron">▾</div>
+        </div>
+        <div class="section-body">
+          <div class="item"><div class="item-tier"><div class="tier tier-A">A</div></div><div class="item-num">1</div><div class="item-content"><div class="item-title">로그 / 스테이지 서버 구축</div><div class="item-desc">안정적인 테스트/QA 및 운영환경 서버 구축</div><div class="item-tags"><span class="tag tag-cross">🔗 전 영역 영향</span></div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-A">A</div></div><div class="item-num">2</div><div class="item-content"><div class="item-title">구매 후기 기능</div><div class="item-desc">매장별 작성인, 시간, 내용, 이미지 1장 제공</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-A">A</div></div><div class="item-num">3</div><div class="item-content"><div class="item-title">정산 및 결제 기능</div><div class="item-desc">과금방식과 주체(업체/유저)별 금액 정산 및 관리</div><div class="item-tags"><span class="tag tag-cross">🔗 전 영역 영향</span></div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-A">A</div></div><div class="item-num">4</div><div class="item-content"><div class="item-title">공구 상품 매력도 증대</div><div class="item-desc">공구 상품 매력도 기능 추가 및 통신사 단 진입 scene UX 개선</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-B">B</div></div><div class="item-num">5</div><div class="item-content"><div class="item-title">주의시세 / 업체 대시보드</div><div class="item-desc">N만원 이상 저렴 등록 시 별도 리스트 표시 (관리담당자 확인용)</div><div class="item-note">모성에도 동시 적용</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-B">B</div></div><div class="item-num">6</div><div class="item-content"><div class="item-title">채팅방 평균 응대시간 태그 표기</div><div class="item-desc">업체 비교 카드에서 평균 응대시간 표기 (파편화 관점)</div><div class="item-note">파편화/태깅/필터 전체 고도화 시 합쳐서 반영</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-B">B</div></div><div class="item-num">7</div><div class="item-content"><div class="item-title">필수 유지기간 및 위약금 안내</div><div class="item-desc">요금제/부가서비스의 필수 유지기간과 위약금 안내 기능</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-B">B</div></div><div class="item-num">8</div><div class="item-content"><div class="item-title">기타 런칭 제외 부가기능</div><div class="item-desc">개통일 기준 해지일 표기, 쿠팡가격 연동, 부가서비스 미가입 추가금 안내 등</div><div class="item-note">Sprint 내 잘라서 분할 배분</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">9</div><div class="item-content"><div class="item-title">관리자 슬랙 알림</div><div class="item-desc">공구 등록 등 어드민 알림을 슬랙으로 수신</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">10</div><div class="item-content"><div class="item-title">구매완료 처리 및 판매 데이터 제공</div><div class="item-desc">판매자의 구매완료 데이터 및 판매일보 (대시보드/통계) 제공</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">11</div><div class="item-content"><div class="item-title">유저 페널티 관련 기능</div><div class="item-desc">공구/역경매 어뷰징 방지 (특히 역경매 — 정산에 영향)</div><div class="item-note">유료화 시점에 TIER A로 상승</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">12</div><div class="item-content"><div class="item-title">공시지원금 자동화 (크롤링)</div><div class="item-desc">통신사별/기종별 공시지원금 자동 반영 (KT는 수기 필요)</div><div class="item-note">당장은 업체관리 책임자가 수동 수행</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">13</div><div class="item-content"><div class="item-title">보험 고도화 (분리관리 및 기종매칭)</div><div class="item-desc">기종별 보험 추가 시 자동으로 가격 매핑되는 관리 기능</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">14</div><div class="item-content"><div class="item-title">시세표 음영 처리</div><div class="item-desc">이전 제출값 대비 변경된 칸 음영 표시 → 제출 후 해제</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">15</div><div class="item-content"><div class="item-title">채팅방 내 타 기종 선택/제시</div><div class="item-desc">고객이 채팅방에서 타 기종 선택 및 자동 제시</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">16</div><div class="item-content"><div class="item-title">요금제별 부가서비스 조합 관리</div><div class="item-desc">요금제별로 부가서비스를 추가/삭제하고 별도 관리</div><div class="item-note">상품이 너무 많아질 수 있음</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">17</div><div class="item-content"><div class="item-title">구매 신청 직접 생성</div><div class="item-desc">어드민 내 구매 신청 건을 직접 생성하는 기능</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">18</div><div class="item-content"><div class="item-title">뭉칩 시세표 이미지 추출</div><div class="item-desc">시세표를 이미지로 추출하여 다른 곳에 활용</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">19</div><div class="item-content"><div class="item-title">업체 앱 홈 데이터 표기</div><div class="item-desc">업체 앱 홈에 주요 지표/숫자 대시보드 형태 제공</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-NA">N/A</div></div><div class="item-num">20</div><div class="item-content"><div class="item-title">공구 배송비 옵션</div><div class="item-desc">업체에서 배송비 별도 여부 선택 및 가격 반영</div><div class="item-note">가격에 선반영 + 안심보험 혜택처럼 보이게</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-done" style="font-size:8px">✓</div></div><div class="item-num">—</div><div class="item-content"><div class="item-title">요금제 통합 (동일 가격 그룹화)</div><div class="item-desc">동일 요금제에 기타 상품이 다르게 붙어있는 경우 통합</div><div class="item-tags"><span class="tag tag-done">✓ 개발완료</span></div></div></div>
+        </div>
+      </div>
+
+      <!-- 신규기능 -->
+      <div class="section s2 open">
+        <div class="section-header" onclick="toggle(this)">
+          <div class="section-title"><div class="section-bar"></div><div class="section-name">✨ 신규기능</div><div class="section-count">7개</div></div>
+          <div class="chevron">▾</div>
+        </div>
+        <div class="section-body">
+          <div class="item"><div class="item-tier"><div class="tier tier-A">A</div></div><div class="item-num">1</div><div class="item-content"><div class="item-title">제휴 배너 링크</div><div class="item-desc">제휴업체 시세표 기반으로 링크별 해당 제휴업체만 보이는 제휴 구조 설계/배포</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-B">B</div></div><div class="item-num">2</div><div class="item-content"><div class="item-title">파티 기능 (동반구매)</div><div class="item-desc">역경매에서 동반할인 받을 수 있게 하고, 공구를 고객이 P2P로 제안하는 기능</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-B">B</div></div><div class="item-num">3</div><div class="item-content"><div class="item-title">공동구매 이벤트 기능</div><div class="item-desc">공구 내 이벤트명, 내용, 이미지 등을 통해 제공하는 기능</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">4</div><div class="item-content"><div class="item-title">AI 기능 (유저단)</div><div class="item-desc">복잡한 조건 없이 구매에 도움되는 AI 챗봇 (기종/요금제 추천)</div><div class="item-note">특허/지원사업 목적으로 마킹 필요</div><div class="item-tags"><span class="tag tag-cross">🔗 전 영역 영향</span></div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">5</div><div class="item-content"><div class="item-title">AI 기능 (판매자단)</div><div class="item-desc">업무 시간 외 고객을 잡아둘 수 있는 AI 상담 챗봇 (유료 운영)</div><div class="item-note">특허/지원사업 목적으로 마킹 필요</div><div class="item-tags"><span class="tag tag-cross">🔗 전 영역 영향</span></div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">6</div><div class="item-content"><div class="item-title">DP폰</div><div class="item-desc">DP폰 판매를 위한 기능 구축 (역경매/공구 둘 다)</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-NA">N/A</div></div><div class="item-num">7</div><div class="item-content"><div class="item-title">자유 입찰</div><div class="item-desc">파티 기능을 P2P로 여는 방식 — 현시점 미진행</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-NA">N/A</div></div><div class="item-num">8</div><div class="item-content"><div class="item-title">뭉파라치</div><div class="item-desc">허위시세 운영 업체 적발 시 보상</div><div class="item-note">프로덕트와 무관하게 운영단으로 이관</div></div></div>
+        </div>
+      </div>
+
+      <!-- 신사업 -->
+      <div class="section s3 open">
+        <div class="section-header" onclick="toggle(this)">
+          <div class="section-title"><div class="section-bar"></div><div class="section-name">🚀 신사업</div><div class="section-count">4개</div></div>
+          <div class="chevron">▾</div>
+        </div>
+        <div class="section-body">
+          <div class="item"><div class="item-tier"><div class="tier tier-B">B</div></div><div class="item-num">1</div><div class="item-content"><div class="item-title">중고폰</div><div class="item-desc">중고폰 판매 (기존에 쓰던 폰 판매)</div><div class="item-note">10월 TIER A로 상승 (10월 말 오픈 타겟)</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-B">B</div></div><div class="item-num">2</div><div class="item-content"><div class="item-title">자체 보험 상품</div><div class="item-desc">자체 휴대폰 파손보험 상품 판매</div><div class="item-note">11월 TIER A로 상승 (11월 말 오픈 타겟)</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-B">B</div></div><div class="item-num">3</div><div class="item-content"><div class="item-title">유선 상품</div><div class="item-desc">TV and/or 인터넷 상품 비교/판매</div><div class="item-note">12월 TIER A로 상승 (12월 말 오픈 타겟)</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-C">C</div></div><div class="item-num">4</div><div class="item-content"><div class="item-title">알뜰폰</div><div class="item-desc">모요와 같이 알뜰폰 비교 서비스 제공</div><div class="item-note">중고폰 자체 판매 가능할 때 고려</div></div></div>
+        </div>
+      </div>
+
+      <!-- 모두의성지 -->
+      <div class="section s4 open">
+        <div class="section-header" onclick="toggle(this)">
+          <div class="section-title"><div class="section-bar"></div><div class="section-name">🏪 모두의성지</div><div class="section-count">4개</div></div>
+          <div class="chevron">▾</div>
+        </div>
+        <div class="section-body">
+          <div class="item"><div class="item-tier"><div class="tier tier-B">B</div></div><div class="item-num">1</div><div class="item-content"><div class="item-title">업체 시세표 초기화</div><div class="item-desc">당일 제출된 시세표를 blank로 만드는 기능</div><div class="item-note">Sprint 내 잘라서 분할 배분</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-B">B</div></div><div class="item-num">2</div><div class="item-content"><div class="item-title">업체 비활성화(정지) 기능</div><div class="item-desc">특정 업체의 시세 등록을 n일(정지일 포함) 비활성화하는 기능</div><div class="item-note">Sprint 내 잘라서 분할 배분</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-B">B</div></div><div class="item-num">3</div><div class="item-content"><div class="item-title">업체 태그 고도화</div><div class="item-desc">업체들 파편화 관점에서 태깅 고도화</div><div class="item-note">Sprint 내 분할 배분 (뭉칩 역경매와 함께 고민)</div></div></div>
+          <div class="item"><div class="item-tier"><div class="tier tier-B">B</div></div><div class="item-num">4</div><div class="item-content"><div class="item-title">온라인 워딩 문구 변경</div><div class="item-desc">온라인으로 편하게 신청 후, 택배수령 등으로 명확한 워딩 변경</div><div class="item-note">Sprint 내 잘라서 분할 배분</div></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <!-- ════ 카테고리 뷰 끝 ════ -->
+
+</div>
+
+<script>
+  function toggle(header) { header.closest('.section').classList.toggle('open'); }
+  function switchTab(view, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tier-view').style.display    = view === 'tier'     ? 'block' : 'none';
+    document.getElementById('category-view').style.display = view === 'category' ? 'block' : 'none';
+  }
+</script>
+</body>
+</html>
